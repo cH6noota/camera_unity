@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
 using System.Threading;
+using UnityEngine.Networking;
+using System;
 
 public class CameraTest : MonoBehaviour
 {
@@ -54,8 +56,33 @@ public class CameraTest : MonoBehaviour
         
         //Encode it as a PNG.
         byte[] bytes = texture.EncodeToPNG();
+        StartCoroutine (UploadFile ( bytes ));
         
         //Save it in a file.
         File.WriteAllBytes(Application.dataPath + "/images/testimg.png", bytes);
     }
+    
+    IEnumerator UploadFile(byte[] img) {
+       //今の時間を取得
+       DateTime dt = DateTime.Now;
+       string filename = dt.ToString("HH_mm_ss")+".png" ;
+        // formにバイナリデータを追加
+        WWWForm form = new WWWForm ();
+        form.AddBinaryData ("file", img,filename , "image/png");
+        // HTTPリクエストを送る
+        UnityWebRequest request = UnityWebRequest.Post ("http://ik1-334-27288.vs.sakura.ne.jp/hack06/upload.php", form);
+        yield return request.Send ();
+        
+        if (request.isError) {
+            // POSTに失敗した場合，エラーログを出力
+            Debug.Log ("error!!");
+            Debug.Log (request.error);
+        } else {
+            // POSTに成功した場合，レスポンスコードを出力
+            Debug.Log ("成功っす");
+            Debug.Log (request.responseCode);
+        }
+    }
+    
+    
 }
